@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Rohan's Tic-Tac-Toe</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      background: linear-gradient(to right, #4e54c8, #8f94fb);
+      margin: 0;
+      padding: 0;
+      color: white;
+      overflow: hidden;
+    }
+
+    #welcomeScreen {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      animation: fadeIn 2s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    h1 {
+      font-size: 60px;
+      margin-bottom: 30px;
+    }
+
+    #startButton {
+      padding: 15px 30px;
+      font-size: 24px;
+      background: #ff4e50;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    #startButton:hover {
+      background: #ff7300;
+    }
+
+    #nameScreen,
+    #gameContainer {
+      display: none;
+    }
+
+    #nameInput input {
+      padding: 10px;
+      font-size: 18px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+    }
+
+    #board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 5px;
+      margin: 20px auto;
+    }
+
+    .cell {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 48px;
+      background: white;
+      color: black;
+      cursor: pointer;
+      border-radius: 10px;
+    }
+
+    #status {
+      font-size: 28px;
+      margin-top: 20px;
+    }
+
+    #shayari {
+      font-size: 22px;
+      margin-top: 20px;
+      color: #ffcccb;
+      font-style: italic;
+    }
+
+    #reset {
+      padding: 10px 20px;
+      font-size: 18px;
+      margin-top: 20px;
+      border: none;
+      border-radius: 10px;
+      background: #00c853;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    #reset:hover {
+      background: #008c3a;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Welcome Screen -->
+  <div id="welcomeScreen">
+    <h1>✨ Welcome to Rohan's World ✨</h1>
+    <button id="startButton">Start Game</button>
+  </div>
+
+  <!-- Player Name Input Screen -->
+  <div id="nameScreen">
+    <h1>Enter Player Names</h1>
+    <div id="nameInput">
+      <input type="text" id="playerX" placeholder="Enter Player X's Name" required>
+      <input type="text" id="playerO" placeholder="Enter Player O's Name" required>
+    </div>
+    <button id="startGame">Start Tic-Tac-Toe</button>
+  </div>
+
+  <!-- Game Container -->
+  <div id="gameContainer">
+    <h1>Rohan's Tic-Tac-Toe</h1>
+    <div id="board"></div>
+    <div id="status">Player X's turn</div>
+    <div id="shayari"></div>
+    <button id="reset">Reset Game</button>
+  </div>
+
+  <script>
+    const welcomeScreen = document.getElementById("welcomeScreen");
+    const startButton = document.getElementById("startButton");
+    const nameScreen = document.getElementById("nameScreen");
+    const gameContainer = document.getElementById("gameContainer");
+
+    const playerXInput = document.getElementById("playerX");
+    const playerOInput = document.getElementById("playerO");
+    const startGameButton = document.getElementById("startGame");
+
+    const board = document.getElementById("board");
+    const status = document.getElementById("status");
+    const resetButton = document.getElementById("reset");
+    const shayari = document.getElementById("shayari");
+
+    let playerXName = "Player X";
+    let playerOName = "Player O";
+    let currentPlayer = "X";
+    let boardState = ["", "", "", "", "", "", "", "", ""];
+    let gameActive = true;
+
+    // Sad Shayaris (for the loser)
+    const sadShayaris = [
+      "💔 Haar toh sirf ek shuruvaat hai, jeet toh humara iraada hai.",
+      "💔 Tujhe bhool jana asaan nahi, haar ki yaadon mein tu hamesha rahega.",
+      "💔 Haar ke baad jeet ki umeed hi jeet hai.",
+      "💔 Haar kar seekhne wale kabhi girte nahi.",
+      "💔 Kisi ne sahi kaha - Haar kar bhi jeetne wale ko baazigar kehte hain.",
+      "💔 Dil se khela tha, dil se haar gaye.",
+      "💔 Haar se dosti kar le, jeet apni ban jayegi."
+    ];
+
+    // Show Name Input after Welcome
+    startButton.addEventListener("click", () => {
+      welcomeScreen.style.display = "none";
+      nameScreen.style.display = "block";
+    });
+
+    // Start the Game after Name Input
+    startGameButton.addEventListener("click", () => {
+      playerXName = playerXInput.value.trim() || "Player X";
+      playerOName = playerOInput.value.trim() || "Player O";
+
+      nameScreen.style.display = "none";
+      gameContainer.style.display = "block";
+      status.textContent = `${playerXName}'s turn`;
+    });
+
+    // Create board cells
+    for (let i = 0; i < 9; i++) {
+      const cell = document.createElement("div");
+      cell.classList.add("cell");
+      cell.dataset.index = i;
+      board.appendChild(cell);
+    }
+
+    // Random Shayari generator
+    function getRandomShayari() {
+      return sadShayaris[Math.floor(Math.random() * sadShayaris.length)];
+    }
+
+    function getCurrentPlayerName() {
+      return currentPlayer === "X" ? playerXName : playerOName;
+    }
+
+    function getOppositePlayerName() {
+      return currentPlayer === "X" ? playerOName : playerXName;
+    }
+
+    // Check for winner
+    function checkWinner() {
+      const winningCombos = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]
+      ];
+
+      for (const [a, b, c] of winningCombos) {
+        if (boardState[a] && boardState[a] === boardState[b] && boardState[a] === boardState[c]) {
+          status.innerHTML = `🎉 ${getCurrentPlayerName()} Wins! 🍗 Winner Winner Chicken Dinner!`;
+          shayari.innerHTML = `💔 ${getOppositePlayerName()} ka dil: "${getRandomShayari()}"`;
+          gameActive = false;
+          return;
+        }
+      }
+
+      if (!boardState.includes("")) {
+        status.textContent = "It's a Draw!";
+        shayari.innerHTML = `💔 "${getRandomShayari()}"`;
+        gameActive = false;
+      }
+    }
+
+    board.addEventListener("click", (e) => {
+      if (!gameActive) return;
+      const index = e.target.dataset.index;
+      if (!boardState[index]) {
+        boardState[index] = currentPlayer;
+        e.target.textContent = currentPlayer;
+        checkWinner();
+        currentPlayer = currentPlayer === "X" ? "O" : "X";
+        status.textContent = `${getCurrentPlayerName()}'s turn`;
+      }
+    });
+
+    resetButton.addEventListener("click", () => location.reload());
+  </script>
+
+</body>
+
+</html>
